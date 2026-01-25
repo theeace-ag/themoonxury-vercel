@@ -156,7 +156,6 @@ async function registerUser(data) {
         }
 
         // Show success modal
-        document.getElementById('ticketNumber').textContent = result.ticketNumber;
         document.getElementById('successModal').classList.add('active');
 
     } catch (error) {
