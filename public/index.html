@@ -141,6 +141,31 @@
         </div>
     </section>
 
+    <!-- Payment Modal -->
+    <div class="modal" id="paymentModal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <h2 class="modal-title">Complete Payment</h2>
+            <p class="modal-subtitle">Scan QR code or use UPI ID to pay</p>
+            <div class="qr-container">
+                <img src="/asset/gpay-qr.png" alt="GPay QR Code" class="qr-image" id="paymentQR">
+            </div>
+            <div class="upi-info">
+                <p class="upi-label">UPI ID</p>
+                <p class="upi-id" id="upiId">your-upi@paytm</p>
+            </div>
+            <div class="amount-display">
+                <span class="amount-label">Amount to Pay:</span>
+                <span class="amount-value" id="modalAmount">₹0</span>
+            </div>
+            <p class="payment-note">After payment, click the button below</p>
+            <div class="modal-actions">
+                <button class="modal-btn primary" id="paidBtn">I HAVE PAID</button>
+                <button class="modal-btn secondary" id="cancelPaymentBtn">CANCEL</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Success Modal -->
     <div class="modal" id="successModal">
         <div class="modal-backdrop"></div>
@@ -150,17 +175,16 @@
                     <path d="M20 6L9 17l-5-5" />
                 </svg>
             </div>
-            <h2 class="modal-title">Booking Confirmed!</h2>
-            <p class="modal-subtitle">Your ticket has been generated</p>
+            <h2 class="modal-title">Registration Submitted!</h2>
+            <p class="modal-subtitle">Your booking is being verified</p>
             <div class="ticket-preview">
                 <span class="ticket-label">TICKET NUMBER</span>
                 <span class="ticket-number" id="ticketNumber">MXRY-XXXXX</span>
             </div>
-            <p class="modal-note">A confirmation email with your ticket has been sent to your email address.
-            </p>
+            <p class="modal-note">Once we verify your payment, you'll receive your ticket via email. This usually takes
+                a few minutes.</p>
             <div class="modal-actions">
-                <a href="#" class="modal-btn primary" id="viewTicketBtn">VIEW TICKET</a>
-                <button class="modal-btn secondary" id="closeModalBtn">CLOSE</button>
+                <button class="modal-btn primary" id="closeModalBtn">GOT IT</button>
             </div>
         </div>
     </div>
@@ -188,8 +212,6 @@
         </div>
     </footer>
 
-    <!-- Razorpay Script -->
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="script.js"></script>
 </body>
 

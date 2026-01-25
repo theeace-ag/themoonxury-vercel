@@ -7,29 +7,14 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Initialize database
 const dbPath = path.join(__dirname, 'db.json');
-const defaultData = { registrations: [], slot_bookings: [] };
-let db;
-
-if (process.env.VERCEL || process.env.chk_Vercel === 'true') {
-    // In-memory adapter for Vercel (prevents EROFS error)
-    const adapter = {
-        read: async () => null,
-        write: async () => { }
-    };
-    db = new Low(adapter, defaultData);
-} else {
-    // File adapter for local development
-    const adapter = new JSONFile(dbPath);
-    db = new Low(adapter, defaultData);
-}
+const adapter = new JSONFile(dbPath);
+const defaultData = { registrations: [] };
+const db = new Low(adapter, defaultData);
 
 // Read existing data
 await db.read();
 db.data ||= defaultData;
-// Only write if not on Vercel to avoid initial write error
-if (!process.env.VERCEL) {
-    await db.write();
-}
+await db.write();
 
 // Database helper functions
 const dbHelpers = {

@@ -66,6 +66,34 @@
       "payment_status": "completed",
       "created_at": "2026-01-16T14:12:21.494Z",
       "updated_at": "2026-01-16T14:12:21.494Z"
+    },
+    {
+      "id": 6,
+      "ticket_number": "MXRY-MKNWTUAQ-1Y3K",
+      "name": "sskumar",
+      "email": "sskumar@ayeeees.com",
+      "phone": "8777817924",
+      "ticket_type": "female_stag",
+      "order_id": "FREE-1768993118882",
+      "payment_id": null,
+      "amount": 0,
+      "payment_status": "completed",
+      "created_at": "2026-01-21T10:58:38.883Z",
+      "updated_at": "2026-01-21T10:58:38.883Z"
+    }
+  ],
+  "slot_bookings": [
+    {
+      "id": 1,
+      "name": "sskumar",
+      "peopleCount": "2",
+      "email": "ayushmaan200913@gmail.com",
+      "phone": "8777817924",
+      "amount": 50,
+      "orderId": "order_S6VJny11RWV8al",
+      "paymentStatus": "pending",
+      "created_at": "2026-01-21T10:59:18.379Z",
+      "updated_at": "2026-01-21T10:59:18.379Z"
     }
   ]
 }

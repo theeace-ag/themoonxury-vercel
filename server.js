@@ -50,7 +50,77 @@ function generateTicketNumber() {
 
 // API Routes
 
-// Create Razorpay Order
+// Register (Manual Payment Flow)
+app.post('/api/register', async (req, res) => {
+    try {
+        const { name, email, phone, ticketType, amount } = req.body;
+
+        if (!name || !email || !phone) {
+            return res.status(400).json({ error: 'All fields are required' });
+        }
+
+        // Check if already registered with completed payment
+        const existing = await db.getRegistrationByEmail(email);
+        if (existing && existing.payment_status === 'completed') {
+            return res.status(400).json({ error: 'This email is already registered' });
+        }
+
+        const ticketNumber = generateTicketNumber();
+
+        // Free tickets are auto-completed
+        if (amount === 0) {
+            await db.createRegistration({
+                ticketNumber,
+                name,
+                email,
+                phone,
+                ticketType,
+                orderId: `FREE-${Date.now()}`,
+                amount: 0,
+                paymentStatus: 'completed'
+            });
+
+            // Generate QR and send email for free tickets
+            const qrData = JSON.stringify({
+                ticket: ticketNumber,
+                name,
+                event: 'MOONXURY 2025',
+                date: '25 Feb 2025'
+            });
+            const qrCodeDataURL = await QRCode.toDataURL(qrData, { width: 200, margin: 2 });
+            const registration = { ticket_number: ticketNumber, name, email, phone, amount: 0, ticket_type: ticketType };
+
+            try {
+                await sendTicketEmail(registration, qrCodeDataURL);
+                await sendAdminNotification(registration);
+            } catch (err) {
+                console.error('Email error:', err);
+            }
+
+            return res.json({ success: true, ticketNumber });
+        }
+
+        // Paid tickets saved as pending (manual verification)
+        await db.createRegistration({
+            ticketNumber,
+            name,
+            email,
+            phone,
+            ticketType,
+            orderId: `MANUAL-${Date.now()}`,
+            amount,
+            paymentStatus: 'pending'
+        });
+
+        res.json({ success: true, ticketNumber });
+
+    } catch (error) {
+        console.error('Registration error:', error);
+        res.status(500).json({ error: 'Registration failed' });
+    }
+});
+
+// Create Razorpay Order (Legacy - kept for compatibility)
 app.post('/api/create-order', async (req, res) => {
     try {
         const { name, email, phone, ticketType, amount } = req.body;
@@ -254,6 +324,61 @@ app.get('/api/admin/registrations', async (req, res) => {
     } catch (error) {
         console.error('Error fetching registrations:', error);
         res.status(500).json({ error: 'Failed to fetch registrations' });
+    }
+});
+
+// Admin: Confirm payment and send ticket
+app.post('/api/admin/confirm-payment', async (req, res) => {
+    try {
+        const { ticketNumber } = req.body;
+
+        if (!ticketNumber) {
+            return res.status(400).json({ error: 'Ticket number is required' });
+        }
+
+        const registration = await db.getRegistrationByTicket(ticketNumber);
+        if (!registration) {
+            return res.status(404).json({ error: 'Registration not found' });
+        }
+
+        if (registration.payment_status === 'completed') {
+            return res.status(400).json({ error: 'Payment already confirmed' });
+        }
+
+        // Update status to completed
+        await db.updatePaymentStatus(registration.order_id, 'MANUAL-CONFIRMED', 'completed');
+
+        // Generate QR code
+        const qrData = JSON.stringify({
+            ticket: registration.ticket_number,
+            name: registration.name,
+            event: 'MOONXURY 2025',
+            date: '25 Feb 2025'
+        });
+        const qrCodeDataURL = await QRCode.toDataURL(qrData, { width: 200, margin: 2 });
+
+        // Send ticket email
+        const regData = {
+            ticket_number: registration.ticket_number,
+            name: registration.name,
+            email: registration.email,
+            phone: registration.phone,
+            amount: registration.amount,
+            ticket_type: registration.ticket_type
+        };
+
+        try {
+            await sendTicketEmail(regData, qrCodeDataURL);
+            await sendAdminNotification(regData);
+        } catch (emailErr) {
+            console.error('Email error:', emailErr);
+        }
+
+        res.json({ success: true, message: 'Payment confirmed and ticket sent' });
+
+    } catch (error) {
+        console.error('Confirm payment error:', error);
+        res.status(500).json({ error: 'Failed to confirm payment' });
     }
 });
 

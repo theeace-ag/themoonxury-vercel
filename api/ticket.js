@@ -44,7 +44,6 @@ module.exports = async (req, res) => {
             name: registration.name,
             email: registration.email,
             phone: registration.phone,
-            ticketType: registration.ticket_type || 'Regular',
             qrCode: qrCodeDataURL,
             eventDate: '25 Feb 2025',
             eventTime: '7 PM Onwards',

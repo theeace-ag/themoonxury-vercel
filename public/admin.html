@@ -437,8 +437,11 @@
                             <th>NAME</th>
                             <th>EMAIL</th>
                             <th>PHONE</th>
+                            <th>TYPE</th>
+                            <th>AMOUNT</th>
                             <th>STATUS</th>
                             <th>DATE</th>
+                            <th>ACTIONS</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -448,17 +451,35 @@
                                 <td>${reg.name}</td>
                                 <td>${reg.email}</td>
                                 <td>${reg.phone}</td>
+                                <td>${reg.ticket_type || 'Regular'}</td>
+                                <td>₹${reg.amount || 0}</td>
                                 <td>
                                     <span class="status-badge status-${reg.payment_status}">
                                         ${reg.payment_status.toUpperCase()}
                                     </span>
                                 </td>
                                 <td class="date-cell">${formatDate(reg.created_at)}</td>
+                                <td>
+                                    ${reg.payment_status === 'pending' ?
+                    `<button class="btn btn-primary confirm-btn" data-ticket="${reg.ticket_number}">CONFIRM</button>` :
+                    `<a href="/ticket/${reg.ticket_number}" class="btn btn-secondary" target="_blank">VIEW</a>`
+                }
+                                </td>
                             </tr>
                         `).join('')}
                     </tbody>
                 </table>
             `;
+
+            // Add event listeners to confirm buttons
+            document.querySelectorAll('.confirm-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const ticketNumber = e.target.getAttribute('data-ticket');
+                    if (confirm(`Confirm payment for ticket ${ticketNumber}?`)) {
+                        await confirmPayment(ticketNumber);
+                    }
+                });
+            });
         }
 
         function filterTable() {
@@ -480,6 +501,27 @@
                 hour: '2-digit',
                 minute: '2-digit'
             });
+        }
+
+        async function confirmPayment(ticketNumber) {
+            try {
+                const response = await fetch('/api/admin/confirm-payment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ticketNumber })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || 'Failed to confirm payment');
+                }
+
+                alert('Payment confirmed! Ticket email sent.');
+                loadData(); // Refresh the table
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
         }
     </script>
 </body>
