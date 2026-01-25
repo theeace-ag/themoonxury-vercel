@@ -156,9 +156,16 @@ async function registerUser(data) {
         }
 
         // Show success modal
-        document.getElementById('successModal').classList.add('active');
+        const modal = document.getElementById('successModal');
+        if (modal) {
+            modal.classList.add('active');
+        } else {
+            console.error('Success modal not found');
+            alert('Registration successful! Please check your email.');
+        }
 
     } catch (error) {
+        console.error('Registration error:', error);
         alert(error.message);
     }
 }

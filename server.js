@@ -522,12 +522,19 @@ async function sendTicketEmail(registration, qrCodeDataURL) {
     </html>
     `;
 
-    await transporter.sendMail({
-        from: `"MOONXURY" <${process.env.EMAIL_USER}>`,
-        to: registration.email,
-        subject: `🎫 Your MOONXURY Ticket - ${registration.ticket_number}`,
-        html: ticketHtml
-    });
+    console.log(`Attempting to send ticket email to: ${registration.email}`);
+    try {
+        await transporter.sendMail({
+            from: `"MOONXURY" <${process.env.EMAIL_USER}>`,
+            to: registration.email,
+            subject: `🎫 Your MOONXURY Ticket - ${registration.ticket_number}`,
+            html: ticketHtml
+        });
+        console.log(`Ticket email sent successfully to: ${registration.email}`);
+    } catch (error) {
+        console.error(`Failed to send ticket email to ${registration.email}:`, error);
+        throw error;
+    }
 }
 
 // Send admin notification
@@ -597,12 +604,19 @@ async function sendSlotConfirmationEmail(booking) {
     </html>
     `;
 
-    await transporter.sendMail({
-        from: `"MOONXURY" <${process.env.EMAIL_USER}>`,
-        to: booking.email,
-        subject: `✅ Slot Confirmed - MOONXURY 2025`,
-        html: emailHtml
-    });
+    console.log(`Attempting to send slot confirmation to: ${booking.email}`);
+    try {
+        await transporter.sendMail({
+            from: `"MOONXURY" <${process.env.EMAIL_USER}>`,
+            to: booking.email,
+            subject: `✅ Slot Confirmed - MOONXURY 2025`,
+            html: emailHtml
+        });
+        console.log(`Slot confirmation sent successfully to: ${booking.email}`);
+    } catch (error) {
+        console.error(`Failed to send slot confirmation to ${booking.email}:`, error);
+        throw error;
+    }
 }
 
 // Serve frontend
