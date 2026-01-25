@@ -122,6 +122,30 @@ const dbHelpers = {
             return { changes: 1 };
         }
         return { changes: 0 };
+    },
+
+    getAllSlotBookings: async () => {
+        if (!db.data.slot_bookings) return [];
+        return [...db.data.slot_bookings].sort((a, b) =>
+            new Date(b.created_at) - new Date(a.created_at)
+        );
+    },
+
+    getSlotBookingById: async (id) => {
+        if (!db.data.slot_bookings) return null;
+        return db.data.slot_bookings.find(b => b.id === parseInt(id)) || null;
+    },
+
+    confirmSlotBooking: async (id) => {
+        if (!db.data.slot_bookings) return { changes: 0 };
+        const booking = db.data.slot_bookings.find(b => b.id === parseInt(id));
+        if (booking) {
+            booking.payment_status = 'completed';
+            booking.updated_at = new Date().toISOString();
+            await db.write();
+            return { changes: 1, booking };
+        }
+        return { changes: 0 };
     }
 };
 

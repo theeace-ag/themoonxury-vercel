@@ -348,7 +348,8 @@ app.get('/api/admin/registrations', async (req, res) => {
     try {
         const registrations = await db.getAllRegistrations();
         const stats = await db.getStats();
-        res.json({ registrations, stats });
+        const slotBookings = await db.getAllSlotBookings();
+        res.json({ registrations, stats, slotBookings });
     } catch (error) {
         console.error('Error fetching registrations:', error);
         res.status(500).json({ error: 'Failed to fetch registrations' });
@@ -407,6 +408,36 @@ app.post('/api/admin/confirm-payment', async (req, res) => {
     } catch (error) {
         console.error('Confirm payment error:', error);
         res.status(500).json({ error: 'Failed to confirm payment' });
+    }
+});
+
+// Admin: Confirm slot booking
+app.post('/api/admin/confirm-slot', async (req, res) => {
+    try {
+        const { slotId } = req.body;
+
+        if (!slotId) {
+            return res.status(400).json({ error: 'Slot ID is required' });
+        }
+
+        const result = await db.confirmSlotBooking(slotId);
+        if (result.changes === 0) {
+            return res.status(404).json({ error: 'Slot booking not found' });
+        }
+
+        // Send confirmation email
+        const booking = result.booking;
+        try {
+            await sendSlotConfirmationEmail(booking);
+        } catch (emailErr) {
+            console.error('Email error:', emailErr);
+        }
+
+        res.json({ success: true, message: 'Slot confirmed' });
+
+    } catch (error) {
+        console.error('Confirm slot error:', error);
+        res.status(500).json({ error: 'Failed to confirm slot' });
     }
 });
 

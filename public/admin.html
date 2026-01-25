@@ -377,6 +377,19 @@
                 </div>
             </div>
         </div>
+
+        <!-- Slot Bookings Section -->
+        <div class="table-container" style="margin-top: 40px;">
+            <div class="table-header">
+                <h2 class="table-title">Slot Confirmations (₹50)</h2>
+            </div>
+            <div id="slotTableContent">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>Loading slot bookings...</p>
+                </div>
+            </div>
+        </div>
     </main>
 
     <script>
@@ -402,6 +415,9 @@
 
                 allRegistrations = data.registrations || [];
                 renderTable(allRegistrations);
+
+                // Also render slot bookings
+                renderSlotTable(data.slotBookings || []);
 
             } catch (error) {
                 console.error('Error loading data:', error);
@@ -519,6 +535,90 @@
 
                 alert('Payment confirmed! Ticket email sent.');
                 loadData(); // Refresh the table
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        function renderSlotTable(slots) {
+            const tableContent = document.getElementById('slotTableContent');
+
+            if (slots.length === 0) {
+                tableContent.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📋</div>
+                        <h3 class="empty-title">No Slot Confirmations Yet</h3>
+                        <p class="empty-text">Slot confirmations will appear here.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            tableContent.innerHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>NAME</th>
+                            <th>EMAIL</th>
+                            <th>PHONE</th>
+                            <th>PEOPLE</th>
+                            <th>STATUS</th>
+                            <th>DATE</th>
+                            <th>ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${slots.map(slot => `
+                            <tr>
+                                <td>${slot.name}</td>
+                                <td>${slot.email}</td>
+                                <td>${slot.phone}</td>
+                                <td>${slot.peopleCount || 1}</td>
+                                <td>
+                                    <span class="status-badge status-${slot.payment_status}">
+                                        ${slot.payment_status.toUpperCase()}
+                                    </span>
+                                </td>
+                                <td class="date-cell">${formatDate(slot.created_at)}</td>
+                                <td>
+                                    ${slot.payment_status === 'pending' ?
+                    `<button class="btn btn-primary slot-confirm-btn" data-id="${slot.id}">CONFIRM</button>` :
+                    `<span style="color: var(--color-success);">✓ Done</span>`
+                }
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+
+            // Add event listeners to confirm buttons
+            document.querySelectorAll('.slot-confirm-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const slotId = e.target.getAttribute('data-id');
+                    if (confirm(`Confirm slot payment?`)) {
+                        await confirmSlotPayment(slotId);
+                    }
+                });
+            });
+        }
+
+        async function confirmSlotPayment(slotId) {
+            try {
+                const response = await fetch('/api/admin/confirm-slot', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ slotId })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || 'Failed to confirm slot');
+                }
+
+                alert('Slot confirmed! Confirmation email sent.');
+                loadData();
             } catch (error) {
                 alert('Error: ' + error.message);
             }
