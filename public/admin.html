@@ -407,11 +407,16 @@
                 const response = await fetch('/api/admin/registrations');
                 const data = await response.json();
 
-                // Update stats
-                document.getElementById('statTotal').textContent = data.stats.total || 0;
-                document.getElementById('statCompleted').textContent = data.stats.completed || 0;
-                document.getElementById('statPending').textContent = data.stats.pending || 0;
-                document.getElementById('statRevenue').textContent = `₹${data.stats.revenue || 0}`;
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to fetch data');
+                }
+
+                if (data.stats) {
+                    safeSetText('statTotal', data.stats.total || 0);
+                    safeSetText('statCompleted', data.stats.completed || 0);
+                    safeSetText('statPending', data.stats.pending || 0);
+                    safeSetText('statRevenue', `₹${data.stats.revenue || 0}`);
+                }
 
                 allRegistrations = data.registrations || [];
                 renderTable(allRegistrations);
@@ -421,14 +426,22 @@
 
             } catch (error) {
                 console.error('Error loading data:', error);
-                document.getElementById('tableContent').innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-icon">⚠️</div>
-                        <h3 class="empty-title">Error Loading Data</h3>
-                        <p class="empty-text">Please try refreshing the page.</p>
-                    </div>
-                `;
+                const tableContent = document.getElementById('tableContent');
+                if (tableContent) {
+                    tableContent.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">⚠️</div>
+                            <h3 class="empty-title">Error Loading Data</h3>
+                            <p class="empty-text">Please try refreshing the page.</p>
+                        </div>
+                    `;
+                }
             }
+        }
+
+        function safeSetText(id, text) {
+            const el = document.getElementById(id);
+            if (el) el.textContent = text;
         }
 
         function renderTable(registrations) {
