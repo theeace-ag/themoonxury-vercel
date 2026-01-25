@@ -120,6 +120,34 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
+// Register Slot (Manual Payment Flow)
+app.post('/api/register-slot', async (req, res) => {
+    try {
+        const { name, peopleCount, email, phone } = req.body;
+
+        if (!name || !peopleCount || !email || !phone) {
+            return res.status(400).json({ error: 'All fields are required' });
+        }
+
+        // Save slot booking as pending
+        await db.createSlotBooking({
+            name,
+            peopleCount,
+            email,
+            phone,
+            amount: 50,
+            order_id: `SLOT-${Date.now()}`,
+            payment_status: 'pending'
+        });
+
+        res.json({ success: true });
+
+    } catch (error) {
+        console.error('Slot registration error:', error);
+        res.status(500).json({ error: 'Slot registration failed' });
+    }
+});
+
 // Create Razorpay Order (Legacy - kept for compatibility)
 app.post('/api/create-order', async (req, res) => {
     try {

@@ -1,11 +1,14 @@
+// MOONXURY - Register Page (Manual Payment Flow)
 document.addEventListener('DOMContentLoaded', () => {
     initParticles();
     initForm();
+    initModals();
 });
 
-// Particle Animation (copied from script.js)
+// Particle Animation
 function initParticles() {
     const container = document.getElementById('particles');
+    if (!container) return;
     const particleCount = 30;
 
     for (let i = 0; i < particleCount; i++) {
@@ -18,116 +21,115 @@ function initParticles() {
     }
 }
 
+// Global state
+let currentRegistration = null;
+
 // Form Handling
 function initForm() {
     const form = document.getElementById('registrationForm');
-    const submitBtn = document.getElementById('submitBtn');
     const loadingOverlay = document.getElementById('loadingOverlay');
+
+    if (!form) return;
 
     // Phone input validation
     const phoneInput = document.getElementById('phone');
-    phoneInput.addEventListener('input', (e) => {
-        e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10);
-    });
+    if (phoneInput) {
+        phoneInput.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10);
+        });
+    }
 
-    // Form connection
+    // Form submission
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
         const name = document.getElementById('name').value.trim();
-        const peopleCount = document.getElementById('peopleCount').value; // New field
+        const peopleCount = document.getElementById('peopleCount').value;
         const email = document.getElementById('email').value.trim();
         const phone = document.getElementById('phone').value.trim();
 
         if (!name || !peopleCount || !email || !phone) {
-            showNotification('Please fill in all fields', 'error');
+            alert('Please fill in all fields');
             return;
         }
 
-        loadingOverlay.classList.add('active');
-        submitBtn.disabled = true;
-
-        try {
-            // Create Slot Booking Order
-            const orderResponse = await fetch('/api/create-slot-booking', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, peopleCount, email, phone })
-            });
-
-            const orderData = await orderResponse.json();
-
-            if (!orderResponse.ok) {
-                throw new Error(orderData.error || 'Failed to initiate booking');
-            }
-
-            // Razorpay options
-            const options = {
-                key: orderData.keyId,
-                amount: orderData.amount,
-                currency: orderData.currency,
-                name: 'MOONXURY',
-                description: 'Slot Confirmation Fee',
-                order_id: orderData.orderId,
-                handler: async function (response) {
-                    loadingOverlay.classList.add('active');
-                    try {
-                        const verifyResponse = await fetch('/api/verify-slot-payment', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                razorpay_order_id: response.razorpay_order_id,
-                                razorpay_payment_id: response.razorpay_payment_id,
-                                razorpay_signature: response.razorpay_signature
-                            })
-                        });
-
-                        const verifyData = await verifyResponse.json();
-
-                        if (!verifyResponse.ok) {
-                            throw new Error(verifyData.error || 'Payment verification failed');
-                        }
-
-                        // Success! Redirect to main page for ticket booking
-                        window.location.href = '/?confirmed=true';
-
-                    } catch (error) {
-                        loadingOverlay.classList.remove('active');
-                        showNotification(error.message, 'error');
-                    }
-                },
-                prefill: {
-                    name: name,
-                    email: email,
-                    contact: '+91' + phone
-                },
-                theme: { color: '#0A0A0A' },
-                modal: {
-                    ondismiss: function () {
-                        loadingOverlay.classList.remove('active');
-                        submitBtn.disabled = false;
-                    }
-                }
-            };
-
-            loadingOverlay.classList.remove('active');
-            const rzp = new Razorpay(options);
-            rzp.open();
-
-            rzp.on('payment.failed', function (response) {
-                showNotification('Payment failed', 'error');
-                submitBtn.disabled = false;
-            });
-
-        } catch (error) {
-            loadingOverlay.classList.remove('active');
-            submitBtn.disabled = false;
-            showNotification(error.message, 'error');
+        if (phone.length !== 10) {
+            alert('Please enter a valid 10-digit phone number');
+            return;
         }
+
+        // Store for later
+        currentRegistration = { name, peopleCount, email, phone };
+
+        // Show payment modal
+        document.getElementById('paymentModal').classList.add('active');
     });
 }
 
-function showNotification(message, type = 'info') {
-    // Reuse notification logic (condensed for brevity)
-    alert(message); // Simple fallback for now
+// Modal handling
+function initModals() {
+    const paymentModal = document.getElementById('paymentModal');
+    const successModal = document.getElementById('successModal');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+
+    // Cancel payment
+    const cancelBtn = document.getElementById('cancelPaymentBtn');
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => {
+            paymentModal.classList.remove('active');
+        });
+    }
+
+    // I have paid button
+    const paidBtn = document.getElementById('paidBtn');
+    if (paidBtn) {
+        paidBtn.addEventListener('click', async () => {
+            paymentModal.classList.remove('active');
+            loadingOverlay.classList.add('active');
+            await registerSlot(currentRegistration);
+            loadingOverlay.classList.remove('active');
+        });
+    }
+
+    // Close success modal
+    const closeBtn = document.getElementById('closeModalBtn');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            successModal.classList.remove('active');
+        });
+    }
+
+    // Close on backdrop click
+    document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+        backdrop.addEventListener('click', () => {
+            paymentModal.classList.remove('active');
+            successModal.classList.remove('active');
+        });
+    });
+}
+
+// Register slot (sends to backend)
+async function registerSlot(data) {
+    try {
+        const response = await fetch('/api/register-slot', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.error || 'Registration failed');
+        }
+
+        // Show success modal
+        document.getElementById('successModal').classList.add('active');
+
+        // Reset form
+        document.getElementById('registrationForm').reset();
+
+    } catch (error) {
+        alert(error.message);
+    }
 }
