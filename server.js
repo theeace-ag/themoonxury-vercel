@@ -4,7 +4,7 @@ import cors from 'cors';
 import bodyParser from 'body-parser';
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -30,8 +30,14 @@ const razorpay = new Razorpay({
 });
 
 // Email transporter
-// Initialize Resend
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Email transporter (Gmail)
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    }
+});
 
 // Generate Ticket Number
 function generateTicketNumber() {
@@ -516,8 +522,8 @@ async function sendTicketEmail(registration, qrCodeDataURL) {
     </html>
     `;
 
-    await resend.emails.send({
-        from: 'MOONXURY <onboarding@resend.dev>', // Update this once you verify your domain
+    await transporter.sendMail({
+        from: `"MOONXURY" <${process.env.EMAIL_USER}>`,
         to: registration.email,
         subject: `🎫 Your MOONXURY Ticket - ${registration.ticket_number}`,
         html: ticketHtml
@@ -537,9 +543,9 @@ async function sendAdminNotification(registration) {
     <p><strong>Time:</strong> ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</p>
     `;
 
-    await resend.emails.send({
-        from: 'MOONXURY System <onboarding@resend.dev>',
-        to: process.env.ADMIN_EMAIL || 'guptathesun@gmail.com', // Fallback to provided email if var is missing
+    await transporter.sendMail({
+        from: `"MOONXURY System" <${process.env.EMAIL_USER}>`,
+        to: process.env.ADMIN_EMAIL,
         subject: `🎫 Ticket Sold: ${registration.ticket_number} (${registration.ticket_type || 'Regular'})`,
         html: adminHtml
     });
@@ -591,8 +597,8 @@ async function sendSlotConfirmationEmail(booking) {
     </html>
     `;
 
-    await resend.emails.send({
-        from: 'MOONXURY <onboarding@resend.dev>',
+    await transporter.sendMail({
+        from: `"MOONXURY" <${process.env.EMAIL_USER}>`,
         to: booking.email,
         subject: `✅ Slot Confirmed - MOONXURY 2025`,
         html: emailHtml
