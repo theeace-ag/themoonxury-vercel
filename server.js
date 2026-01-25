@@ -710,23 +710,6 @@ app.post('/api/verify-slot-payment', async (req, res) => {
     }
 });
 
-async function sendSlotConfirmationEmail(booking) {
-    const emailHtml = `
-    <h2>Booking Confirmed!</h2>
-    <p>Dear ${booking.name},</p>
-    <p>Your slot for MOONXURY has been confirmed. Thank you for the payment of ₹${booking.amount}.</p>
-    <p><strong>Please proceed to book your tickets now.</strong></p>
-    <p><a href="https://moonxury.railway.app/" style="background:#000;color:#fff;padding:10px 20px;text-decoration:none;border-radius:5px;">Book Tickets</a></p>
-    `;
-
-    await transporter.sendMail({
-        from: `"MOONXURY" <${process.env.EMAIL_USER}>`,
-        to: booking.email,
-        subject: `✅ Slot Confirmed - MOONXURY`,
-        html: emailHtml
-    });
-}
-
 // Start server
 app.listen(PORT, () => {
     console.log(`🌙 MOONXURY Server running on http://localhost:${PORT}`);
