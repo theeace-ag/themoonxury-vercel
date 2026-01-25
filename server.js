@@ -552,6 +552,60 @@ async function sendAdminNotification(registration) {
     });
 }
 
+// Send slot confirmation email
+async function sendSlotConfirmationEmail(booking) {
+    const emailHtml = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <style>
+            body { font-family: 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+            .container { max-width: 600px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 40px; }
+            .header { text-align: center; margin-bottom: 30px; }
+            .logo { font-size: 24px; font-weight: 700; letter-spacing: 4px; }
+            h1 { color: #333; font-size: 28px; margin-bottom: 10px; }
+            .success { color: #22C55E; font-size: 48px; }
+            .details { background: #f8f8f8; padding: 20px; border-radius: 8px; margin: 20px 0; }
+            .details p { margin: 8px 0; }
+            .cta { text-align: center; margin-top: 30px; }
+            .btn { display: inline-block; background: #1a1a1a; color: #fff; padding: 15px 30px; text-decoration: none; border-radius: 8px; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <div class="logo">MOONXURY</div>
+            </div>
+            <div style="text-align: center;">
+                <div class="success">✓</div>
+                <h1>Slot Confirmed!</h1>
+                <p>Your slot for MOONXURY 2025 has been confirmed.</p>
+            </div>
+            <div class="details">
+                <p><strong>Name:</strong> ${booking.name}</p>
+                <p><strong>People:</strong> ${booking.peopleCount || 1}</p>
+                <p><strong>Email:</strong> ${booking.email}</p>
+                <p><strong>Phone:</strong> ${booking.phone}</p>
+                <p><strong>Amount Paid:</strong> ₹${booking.amount || 50}</p>
+            </div>
+            <div class="cta">
+                <p>You can now book your tickets!</p>
+                <a href="${process.env.SITE_URL || 'https://moonxury-production-47fa.up.railway.app'}" class="btn">BOOK TICKETS</a>
+            </div>
+        </div>
+    </body>
+    </html>
+    `;
+
+    await transporter.sendMail({
+        from: `"THEMOON" <${process.env.EMAIL_USER}>`,
+        to: booking.email,
+        subject: `✅ Slot Confirmed - MOONXURY 2025`,
+        html: emailHtml
+    });
+}
+
 // Serve frontend
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));

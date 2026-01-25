@@ -575,13 +575,13 @@
                                 <td>${slot.phone}</td>
                                 <td>${slot.peopleCount || 1}</td>
                                 <td>
-                                    <span class="status-badge status-${slot.payment_status}">
-                                        ${slot.payment_status.toUpperCase()}
+                                    <span class="status-badge status-${slot.payment_status || 'pending'}">
+                                        ${(slot.payment_status || 'pending').toUpperCase()}
                                     </span>
                                 </td>
                                 <td class="date-cell">${formatDate(slot.created_at)}</td>
                                 <td>
-                                    ${slot.payment_status === 'pending' ?
+                                    ${(slot.payment_status || 'pending') === 'pending' ?
                     `<button class="btn btn-primary slot-confirm-btn" data-id="${slot.id}">CONFIRM</button>` :
                     `<span style="color: var(--color-success);">✓ Done</span>`
                 }
