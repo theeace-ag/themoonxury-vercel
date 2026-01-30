@@ -122,6 +122,18 @@
       "paymentStatus": "pending",
       "created_at": "2026-01-21T10:59:18.379Z",
       "updated_at": "2026-01-21T10:59:18.379Z"
+    },
+    {
+      "id": 2,
+      "name": "uv",
+      "peopleCount": "2",
+      "email": "ayushmaan200913@gmail.com",
+      "phone": "8777817924",
+      "amount": 50,
+      "order_id": "SLOT-1769783435570",
+      "payment_status": "completed",
+      "created_at": "2026-01-30T14:30:35.570Z",
+      "updated_at": "2026-01-30T14:30:53.008Z"
     }
   ]
 }
