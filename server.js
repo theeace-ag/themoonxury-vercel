@@ -396,10 +396,17 @@ app.post('/api/admin/confirm-payment', async (req, res) => {
         };
 
         try {
+            console.log('Sending ticket email to:', regData.email);
             await sendTicketEmail(regData, qrCodeDataURL);
+            console.log('✅ Ticket email sent successfully to:', regData.email);
+
             await sendAdminNotification(regData);
+            console.log('✅ Admin notification sent');
         } catch (emailErr) {
-            console.error('Email error:', emailErr);
+            console.error('❌ Email error:', emailErr.message);
+            console.error('Full error:', emailErr);
+            // Still return success since payment was confirmed
+            return res.json({ success: true, message: 'Payment confirmed but email failed: ' + emailErr.message });
         }
 
         res.json({ success: true, message: 'Payment confirmed and ticket sent' });
