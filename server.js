@@ -4,7 +4,7 @@ import cors from 'cors';
 import bodyParser from 'body-parser';
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
-import nodemailer from 'nodemailer';
+import * as brevo from '@getbrevo/brevo';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -29,16 +29,9 @@ const razorpay = new Razorpay({
     key_secret: process.env.RAZORPAY_KEY_SECRET
 });
 
-// Email transporter (Gmail with SSL)
-const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
-});
+// Email via Brevo (Sendinblue) API
+const brevoClient = new brevo.TransactionalEmailsApi();
+brevoClient.setApiKey(brevo.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY);
 
 // Generate Ticket Number
 function generateTicketNumber() {
@@ -532,12 +525,13 @@ async function sendTicketEmail(registration, qrCodeDataURL) {
 
     console.log(`Attempting to send ticket email to: ${registration.email}`);
     try {
-        await transporter.sendMail({
-            from: `"MOONXURY" <${process.env.EMAIL_USER}>`,
-            to: registration.email,
-            subject: `🎫 Your MOONXURY Ticket - ${registration.ticket_number}`,
-            html: ticketHtml
-        });
+        const sendSmtpEmail = new brevo.SendSmtpEmail();
+        sendSmtpEmail.sender = { name: 'MOONXURY', email: process.env.EMAIL_USER };
+        sendSmtpEmail.to = [{ email: registration.email, name: registration.name }];
+        sendSmtpEmail.subject = `🎫 Your MOONXURY Ticket - ${registration.ticket_number}`;
+        sendSmtpEmail.htmlContent = ticketHtml;
+
+        await brevoClient.sendTransacEmail(sendSmtpEmail);
         console.log(`✅ Ticket email sent successfully to: ${registration.email}`);
     } catch (error) {
         console.error(`Failed to send ticket email to ${registration.email}:`, error);
@@ -558,12 +552,13 @@ async function sendAdminNotification(registration) {
     <p><strong>Time:</strong> ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</p>
     `;
     try {
-        await transporter.sendMail({
-            from: `"MOONXURY System" <${process.env.EMAIL_USER}>`,
-            to: process.env.ADMIN_EMAIL,
-            subject: `🎫 Ticket Sold: ${registration.ticket_number} (${registration.ticket_type || 'Regular'})`,
-            html: adminHtml
-        });
+        const sendSmtpEmail = new brevo.SendSmtpEmail();
+        sendSmtpEmail.sender = { name: 'MOONXURY System', email: process.env.EMAIL_USER };
+        sendSmtpEmail.to = [{ email: process.env.ADMIN_EMAIL }];
+        sendSmtpEmail.subject = `🎫 Ticket Sold: ${registration.ticket_number} (${registration.ticket_type || 'Regular'})`;
+        sendSmtpEmail.htmlContent = adminHtml;
+
+        await brevoClient.sendTransacEmail(sendSmtpEmail);
         console.log('✅ Admin notification sent');
     } catch (error) {
         console.error('Admin notification error:', error);
@@ -618,12 +613,13 @@ async function sendSlotConfirmationEmail(booking) {
 
     console.log(`Attempting to send slot confirmation to: ${booking.email}`);
     try {
-        await transporter.sendMail({
-            from: `"MOONXURY" <${process.env.EMAIL_USER}>`,
-            to: booking.email,
-            subject: `✅ Slot Confirmed - MOONXURY 2025`,
-            html: emailHtml
-        });
+        const sendSmtpEmail = new brevo.SendSmtpEmail();
+        sendSmtpEmail.sender = { name: 'MOONXURY', email: process.env.EMAIL_USER };
+        sendSmtpEmail.to = [{ email: booking.email, name: booking.name }];
+        sendSmtpEmail.subject = `✅ Slot Confirmed - MOONXURY 2025`;
+        sendSmtpEmail.htmlContent = emailHtml;
+
+        await brevoClient.sendTransacEmail(sendSmtpEmail);
         console.log(`✅ Slot confirmation sent successfully to: ${booking.email}`);
     } catch (error) {
         console.error(`Failed to send slot confirmation to ${booking.email}:`, error);
