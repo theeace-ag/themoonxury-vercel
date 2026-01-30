@@ -31,7 +31,13 @@ const razorpay = new Razorpay({
 
 // Email via Brevo (Sendinblue) API
 const brevoClient = new brevo.TransactionalEmailsApi();
-brevoClient.setApiKey(brevo.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY);
+const brevoKey = process.env.BREVO_API_KEY || '';
+if (brevoKey) {
+    console.log('✅ Brevo API Key found (starts with: ' + brevoKey.substring(0, 8) + '...)');
+    brevoClient.setApiKey(brevo.TransactionalEmailsApiApiKeys.apiKey, brevoKey);
+} else {
+    console.error('❌ BREVO_API_KEY NOT FOUND in environment variables');
+}
 
 // Generate Ticket Number
 function generateTicketNumber() {
