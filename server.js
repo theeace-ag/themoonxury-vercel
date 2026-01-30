@@ -4,7 +4,7 @@ import cors from 'cors';
 import bodyParser from 'body-parser';
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -29,8 +29,16 @@ const razorpay = new Razorpay({
     key_secret: process.env.RAZORPAY_KEY_SECRET
 });
 
-// Email via Resend API
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Email transporter (Gmail with SSL)
+const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    }
+});
 
 // Generate Ticket Number
 function generateTicketNumber() {
@@ -524,17 +532,13 @@ async function sendTicketEmail(registration, qrCodeDataURL) {
 
     console.log(`Attempting to send ticket email to: ${registration.email}`);
     try {
-        const { data, error } = await resend.emails.send({
-            from: 'MOONXURY <onboarding@resend.dev>',
+        await transporter.sendMail({
+            from: `"MOONXURY" <${process.env.EMAIL_USER}>`,
             to: registration.email,
             subject: `🎫 Your MOONXURY Ticket - ${registration.ticket_number}`,
             html: ticketHtml
         });
-        if (error) {
-            console.error(`Failed to send ticket email:`, error);
-            throw new Error(error.message);
-        }
-        console.log(`✅ Ticket email sent successfully to: ${registration.email}`, data);
+        console.log(`✅ Ticket email sent successfully to: ${registration.email}`);
     } catch (error) {
         console.error(`Failed to send ticket email to ${registration.email}:`, error);
         throw error;
@@ -553,17 +557,16 @@ async function sendAdminNotification(registration) {
     <p><strong>Amount:</strong> ₹${registration.amount}</p>
     <p><strong>Time:</strong> ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</p>
     `;
-
-    const { data, error } = await resend.emails.send({
-        from: 'MOONXURY System <onboarding@resend.dev>',
-        to: process.env.ADMIN_EMAIL,
-        subject: `🎫 Ticket Sold: ${registration.ticket_number} (${registration.ticket_type || 'Regular'})`,
-        html: adminHtml
-    });
-    if (error) {
+    try {
+        await transporter.sendMail({
+            from: `"MOONXURY System" <${process.env.EMAIL_USER}>`,
+            to: process.env.ADMIN_EMAIL,
+            subject: `🎫 Ticket Sold: ${registration.ticket_number} (${registration.ticket_type || 'Regular'})`,
+            html: adminHtml
+        });
+        console.log('✅ Admin notification sent');
+    } catch (error) {
         console.error('Admin notification error:', error);
-    } else {
-        console.log('✅ Admin notification sent', data);
     }
 }
 
@@ -615,17 +618,13 @@ async function sendSlotConfirmationEmail(booking) {
 
     console.log(`Attempting to send slot confirmation to: ${booking.email}`);
     try {
-        const { data, error } = await resend.emails.send({
-            from: 'MOONXURY <onboarding@resend.dev>',
+        await transporter.sendMail({
+            from: `"MOONXURY" <${process.env.EMAIL_USER}>`,
             to: booking.email,
             subject: `✅ Slot Confirmed - MOONXURY 2025`,
             html: emailHtml
         });
-        if (error) {
-            console.error(`Failed to send slot confirmation:`, error);
-            throw new Error(error.message);
-        }
-        console.log(`✅ Slot confirmation sent successfully to: ${booking.email}`, data);
+        console.log(`✅ Slot confirmation sent successfully to: ${booking.email}`);
     } catch (error) {
         console.error(`Failed to send slot confirmation to ${booking.email}:`, error);
         throw error;
