@@ -381,7 +381,7 @@ app.post('/api/admin/confirm-payment', async (req, res) => {
             ticket: registration.ticket_number,
             name: registration.name,
             event: 'MOONXURY 2025',
-            date: '25 Feb 2025'
+            date: '28 Feb 2025'
         });
         const qrCodeDataURL = await QRCode.toDataURL(qrData, { width: 200, margin: 2 });
 
@@ -496,7 +496,7 @@ async function sendTicketEmail(registration, qrCodeDataURL) {
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">DATE</span>
-                        <span class="detail-value">25 February 2025</span>
+                        <span class="detail-value">28 February 2025</span>
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">TIME</span>
