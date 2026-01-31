@@ -31,8 +31,8 @@ module.exports = async (req, res) => {
         const qrData = JSON.stringify({
             ticket: registration.ticket_number,
             name: registration.name,
-            event: 'MOONXURY 2025',
-            date: '25 Feb 2025'
+            event: 'MOONXURY 2026',
+            date: '28 Feb 2026'
         });
         const qrCodeDataURL = await QRCode.toDataURL(qrData, {
             width: 200,
@@ -45,7 +45,7 @@ module.exports = async (req, res) => {
             email: registration.email,
             phone: registration.phone,
             qrCode: qrCodeDataURL,
-            eventDate: '25 Feb 2025',
+            eventDate: '28 Feb 2026',
             eventTime: '7 PM Onwards',
             venue: 'Kolkata (Venue TBA)'
         });

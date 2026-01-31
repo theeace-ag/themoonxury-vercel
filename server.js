@@ -83,8 +83,8 @@ app.post('/api/register', async (req, res) => {
             const qrData = JSON.stringify({
                 ticket: ticketNumber,
                 name,
-                event: 'MOONXURY 2025',
-                date: '25 Feb 2025'
+                event: 'MOONXURY 2026',
+                date: '28 Feb 2026'
             });
             const qrCodeDataURL = await QRCode.toDataURL(qrData, { width: 200, margin: 2 });
             const registration = { ticket_number: ticketNumber, name, email, phone, amount: 0, ticket_type: ticketType };
@@ -183,8 +183,8 @@ app.post('/api/create-order', async (req, res) => {
             const qrData = JSON.stringify({
                 ticket: ticketNumber,
                 name: name,
-                event: 'MOONXURY 2025',
-                date: '25 Feb 2025'
+                event: 'MOONXURY 2026',
+                date: '28 Feb 2026'
             });
             const qrCodeDataURL = await QRCode.toDataURL(qrData, {
                 width: 200,
@@ -274,8 +274,8 @@ app.post('/api/verify-payment', async (req, res) => {
         const qrData = JSON.stringify({
             ticket: registration.ticket_number,
             name: registration.name,
-            event: 'MOONXURY 2025',
-            date: '25 Feb 2025'
+            event: 'MOONXURY 2026',
+            date: '28 Feb 2026'
         });
         const qrCodeDataURL = await QRCode.toDataURL(qrData, {
             width: 200,
@@ -317,8 +317,8 @@ app.get('/api/ticket/:ticketNumber', async (req, res) => {
         const qrData = JSON.stringify({
             ticket: registration.ticket_number,
             name: registration.name,
-            event: 'MOONXURY 2025',
-            date: '25 Feb 2025'
+            event: 'MOONXURY 2026',
+            date: '28 Feb 2026'
         });
         const qrCodeDataURL = await QRCode.toDataURL(qrData, {
             width: 200,
@@ -331,7 +331,7 @@ app.get('/api/ticket/:ticketNumber', async (req, res) => {
             email: registration.email,
             phone: registration.phone,
             qrCode: qrCodeDataURL,
-            eventDate: '25 Feb 2025',
+            eventDate: '28 Feb 2026',
             eventTime: '7 PM Onwards',
             venue: 'Kolkata (Venue TBA)'
         });
@@ -380,8 +380,8 @@ app.post('/api/admin/confirm-payment', async (req, res) => {
         const qrData = JSON.stringify({
             ticket: registration.ticket_number,
             name: registration.name,
-            event: 'MOONXURY 2025',
-            date: '28 Feb 2025'
+            event: 'MOONXURY 2026',
+            date: '28 Feb 2026'
         });
         const qrCodeDataURL = await QRCode.toDataURL(qrData, { width: 200, margin: 2 });
 
@@ -496,7 +496,7 @@ async function sendTicketEmail(registration, qrCodeDataURL) {
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">DATE</span>
-                        <span class="detail-value">28 February 2025</span>
+                        <span class="detail-value">28 February 2026</span>
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">TIME</span>
@@ -599,7 +599,7 @@ async function sendSlotConfirmationEmail(booking) {
             <div style="text-align: center;">
                 <div class="success">✓</div>
                 <h1>Slot Confirmed!</h1>
-                <p>Your slot for MOONXURY 2025 has been confirmed.</p>
+                <p>Your slot for MOONXURY 2026 has been confirmed.</p>
             </div>
             <div class="details">
                 <p><strong>Name:</strong> ${booking.name}</p>
@@ -622,7 +622,7 @@ async function sendSlotConfirmationEmail(booking) {
         const sendSmtpEmail = new brevo.SendSmtpEmail();
         sendSmtpEmail.sender = { name: 'MOONXURY', email: process.env.EMAIL_USER };
         sendSmtpEmail.to = [{ email: booking.email, name: booking.name }];
-        sendSmtpEmail.subject = `✅ Slot Confirmed - MOONXURY 2025`;
+        sendSmtpEmail.subject = `✅ Slot Confirmed - MOONXURY 2026`;
         sendSmtpEmail.htmlContent = emailHtml;
 
         await brevoClient.sendTransacEmail(sendSmtpEmail);
